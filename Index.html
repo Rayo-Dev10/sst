@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de SST y Ambiental - RAYO PALATIANOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 30vh;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        .tab-btn.active { border-bottom: 4px solid #2E7D32; color: #003366; font-weight: bold; }
+        .tab-btn { border-bottom: 4px solid transparent; color: #64748b; transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .pyramid-level { transition: all 0.3s ease; cursor: pointer; }
+        .pyramid-level:hover { opacity: 0.9; transform: scale(1.02); }
+        
+        .focus-highlight {
+            outline: 5px solid #2E7D32;
+            outline-offset: 4px;
+            border-radius: 12px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 30px rgba(46, 125, 50, 0.5);
+            z-index: 50;
+        }
+        .progress-bar-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            z-index: 100;
+        }
+        #progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2E7D32, #4CAF50);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .presentation-controls {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 101;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .control-btn {
+            background: #003366;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .control-btn:hover { background: #002244; transform: scale(1.05); }
+
+        @keyframes latino-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(46, 125, 50, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+        }
+        .btn-latido {
+            animation: latino-pulse 1.8s infinite;
+            background-color: #2E7D32 !important;
+        }
+
+        .narration-status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2E7D32;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Ocultar cursor en modo presentación si el usuario lo desea */
+        .presentation-active { cursor: default; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col pb-20">
+
+    <!-- Chosen Palette: Professional Compliance (Navy #003366, Eco-Green #2E7D32, Alert Amber #FF9800) -->
+    <!-- Application Structure Plan: High-engagement interactive dashboard with Fullscreen API support. The "Start Tour" action now requests full-screen mode to eliminate distractions, returning to normal view upon completion or cancellation. The "Latino Pulse" effect signals narration completion. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div id="narration-indicator" class="narration-status">🎙️ Narrando explicación detallada...</div>
+
+    <header class="bg-[#003366] text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Gestión de SST y Ambiental</h1>
+                <p class="text-green-300 mt-1 font-medium italic">Consultoría Interactiva - Decreto 1072 de 2015</p>
+            </div>
+            <div class="mt-4 md:mt-0 text-center md:text-right text-sm border-l-0 md:border-l border-white/20 pl-0 md:pl-6">
+                <p class="font-bold text-lg text-white">RAYO PALATIANOS</p>
+                <p class="text-gray-300">Análisis y Desarrollo de Software</p>
+                <p class="text-gray-400">Ficha: 3134559</p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-black/10 mt-2 overflow-x-auto">
+            <nav class="flex space-x-8 min-w-max" aria-label="Tabs" id="nav-tabs">
+                <button onclick="switchTab('inicio')" class="tab-btn active px-3 py-4 text-sm font-medium" data-target="inicio">🏠 Contexto</button>
+                <button onclick="switchTab('ambiente')" class="tab-btn px-3 py-4 text-sm font-medium" data-target="ambiente">🌱 Ambiental</button>
+                <button onclick="switchTab('atel')" class="tab-btn px-3 py-4 text-sm font-medium" data-target="atel">⚠️ Riesgos ATEL</button>
+                <button onclick="switchTab('gestion')" class="tab-btn px-3 py-4 text-sm font-medium" data-target="gestion">🛡️ Jerarquía Control</button>
+                <button onclick="switchTab('conclusiones')" class="tab-btn px-3 py-4 text-sm font-medium" data-target="conclusiones">✅ Resultados</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <section id="inicio" class="tab-content block">
+            <div id="welcome-card" class="bg-white rounded-2xl shadow-md p-8 md:p-12 border-t-8 border-[#2E7D32]">
+                <h2 class="text-4xl font-bold text-[#003366] mb-6">Presentación de Gestión Integral</h2>
+                <p class="text-gray-700 text-xl leading-relaxed mb-8">
+                    Esta herramienta ha sido diseñada para visualizar la interacción entre la productividad en el desarrollo de software y la responsabilidad legal y ambiental. A continuación, iniciaremos una explicación profunda de los pilares de seguridad y sostenibilidad.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div id="card-env" class="bg-blue-50 p-8 rounded-xl border border-blue-100 text-center hover-card">
+                        <div class="text-5xl mb-4">🌍</div>
+                        <h3 class="font-bold text-[#003366] text-lg">Responsabilidad Ambiental</h3>
+                    </div>
+                    <div id="card-atel" class="bg-orange-50 p-8 rounded-xl border border-orange-100 text-center hover-card">
+                        <div class="text-5xl mb-4">🩺</div>
+                        <h3 class="font-bold text-[#003366] text-lg">Prevención ATEL</h3>
+                    </div>
+                    <div id="card-mgmt" class="bg-green-50 p-8 rounded-xl border border-green-100 text-center hover-card">
+                        <div class="text-5xl mb-4">📊</div>
+                        <h3 class="font-bold text-[#003366] text-lg">Control Estratégico</h3>
+                    </div>
+                </div>
+                <div class="mt-12 p-8 bg-[#003366] text-white rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="text-center md:text-left">
+                        <h4 class="text-2xl font-bold">Modo de Aprendizaje Guiado</h4>
+                        <p class="text-blue-200 mt-2">Activa el sonido. El sistema explicará cada punto con detalle técnico en pantalla completa.</p>
+                    </div>
+                    <button onclick="startTour()" class="bg-[#2E7D32] hover:bg-green-700 text-white px-10 py-4 rounded-full font-black text-lg transition shadow-xl transform active:scale-95">
+                        🚀 INICIAR RECORRIDO
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="ambiente" class="tab-content hidden">
+            <div class="mb-10 text-center lg:text-left" id="header-ambiente">
+                <h2 class="text-3xl font-bold text-[#003366] mb-3">1. Gestión de Impactos Ambientales</h2>
+                <p class="text-gray-600 text-lg">Integrando la economía circular en el ciclo de vida del software.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div id="env-list-focus" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-2xl font-bold text-[#2E7D32] mb-6 border-b pb-2">Acciones Prioritarias</h3>
+                    <ul class="space-y-4" id="env-list"></ul>
+                </div>
+                <div class="bg-gray-50 p-8 rounded-2xl border border-gray-200" id="env-chart-focus">
+                    <h3 class="text-center font-bold text-gray-700 mb-6 text-xl">Distribución de Impacto Organizacional</h3>
+                    <div class="chart-container">
+                        <canvas id="envChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="atel" class="tab-content hidden">
+            <div class="mb-10" id="header-atel">
+                <h2 class="text-3xl font-bold text-[#003366] mb-3">2. Riesgos Laborales y Salud (ATEL)</h2>
+                <p class="text-gray-600 text-lg">Identificación técnica de eventos de salud en el entorno digital.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div id="acc-focus" class="bg-white p-8 rounded-2xl shadow-sm border-t-8 border-[#FF9800]">
+                    <h3 class="text-2xl font-bold text-[#003366] mb-6">⚠️ Accidentes de Trabajo (AT)</h3>
+                    <div class="space-y-4" id="accidents-container"></div>
+                </div>
+
+                <div id="dis-focus" class="bg-white p-8 rounded-2xl shadow-sm border-t-8 border-[#003366]">
+                    <h3 class="text-2xl font-bold text-[#003366] mb-6">🩺 Enfermedades Laborales (EL)</h3>
+                    <div class="space-y-4" id="diseases-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="gestion" class="tab-content hidden">
+            <div class="mb-10" id="header-gestion">
+                <h2 class="text-3xl font-bold text-[#003366] mb-3">3. Jerarquía de Control de Riesgos</h2>
+                <p class="text-gray-600 text-lg">Metodología de intervención para la mitigación efectiva.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200" id="pyramid-focus">
+                    <h3 class="text-xl font-bold text-[#003366] mb-8 text-center uppercase tracking-wider">Estructura de Control (5 Niveles)</h3>
+                    <div class="flex flex-col items-center w-full space-y-2" id="pyramid-container">
+                        <div id="lev-1" class="pyramid-level bg-red-800 text-white w-full py-4 px-4 rounded-t-xl text-center font-bold shadow-md" onclick="showControlDetail('Eliminación', 'Consiste en suprimir físicamente el peligro. Por ejemplo, remover hardware defectuoso con fugas de corriente o cables obsoletos que obstruyen vías de evacuación.')">1. ELIMINACIÓN</div>
+                        <div id="lev-2" class="pyramid-level bg-orange-600 text-white w-11/12 py-4 px-4 text-center font-bold shadow-md" onclick="showControlDetail('Sustitución', 'Reemplazar procesos o materiales peligrosos por unos de menor riesgo. Ejemplo: cambiar limpiadores de hardware tóxicos por espumas biodegradables certificadas.')">2. SUSTITUCIÓN</div>
+                        <div id="lev-3" class="pyramid-level bg-yellow-500 text-black w-5/6 py-4 px-4 text-center font-bold shadow-md" onclick="showControlDetail('Ingeniería', 'Aislamiento del trabajador mediante diseño. Ejemplo: instalar racks de servidores con aislamiento sonoro y sistemas de ventilación automatizados.')">3. INGENIERÍA</div>
+                        <div id="lev-4" class="pyramid-level bg-blue-500 text-white w-3/4 py-4 px-4 text-center font-bold shadow-md" onclick="showControlDetail('Administración', 'Gestión de procedimientos y tiempos. Incluye la señalización de áreas de voltaje, capacitaciones obligatorias y el programa de pausas activas por software.')">4. ADMIN</div>
+                        <div id="lev-5" class="pyramid-level bg-green-600 text-white w-2/3 py-4 px-4 rounded-b-xl text-center font-bold shadow-md" onclick="showControlDetail('EPP', 'Última línea de defensa. Suministro de mouses ergonómicos, protectores oculares contra luz azul y pulseras antiestáticas para el personal técnico.')">5. EPP</div>
+                    </div>
+                    <div id="control-detail" class="mt-8 p-6 bg-blue-50 border-l-8 border-[#003366] rounded-r-xl min-h-[120px]">
+                        <p class="text-gray-500 italic text-center">La voz explicará cada nivel conforme avancemos en la presentación.</p>
+                    </div>
+                </div>
+
+                <div class="bg-[#003366] p-8 rounded-2xl shadow-xl text-white" id="dashboard-focus">
+                    <h3 class="text-2xl font-bold text-white mb-8 flex items-center">📊 Tablero de Auditoría y Seguimiento</h3>
+                    <ul class="space-y-6" id="mgmt-items"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusiones" class="tab-content hidden">
+            <div class="mb-12 text-center max-w-4xl mx-auto" id="header-conclusiones">
+                <h2 class="text-4xl font-bold text-[#003366] mb-4">Conclusiones de la Estrategia</h2>
+                <p class="text-gray-600 text-lg italic">Resultados esperados de una gestión integral efectiva.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="concl-grid"></div>
+        </section>
+
+    </main>
+
+    <div class="progress-bar-container">
+        <div id="progress-fill"></div>
+    </div>
+
+    <div class="presentation-controls hidden" id="tour-controls">
+        <button onclick="prevStep()" class="control-btn bg-gray-500 hover:bg-gray-700">⬅️ Anterior</button>
+        <button onclick="nextStep()" id="btn-next" class="control-btn shadow-green-200">Continuar Recorrido ➡️</button>
+        <button onclick="stopTour()" class="p-3 bg-red-600 text-white rounded-full hover:bg-red-800 transition">✖️</button>
+    </div>
+
+    <footer class="bg-gray-900 text-gray-500 py-10 text-center text-sm mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="font-bold text-gray-400 mb-2">SISTEMA INTEGRADO DE GESTIÓN - SENA 2026</p>
+            <p>Desarrollado para el cumplimiento normativo de Seguridad y Salud en el Trabajo.</p>
+        </div>
+    </footer>
+
+    <script>
+        const data = {
+            environment: [
+                { id: 'raee', text: "Identificación de RAEE: Gestión de dispositivos electrónicos al final de su vida útil.", icon: "💻" },
+                { id: 'energia', text: "Eficiencia Energética: Programación de apagado automático en laboratorios de desarrollo.", icon: "⚡" },
+                { id: 'solidos', text: "Residuos Sólidos: Clasificación bajo normativa de colores para papel y cartón.", icon: "🗑️" },
+                { id: 'quimicos', text: "Control de Vertimientos: Manejo de solventes y líquidos de limpieza técnica.", icon: "🧪" }
+            ],
+            accidents: [
+                { risk: "Riesgos Eléctricos", prevent: "Sobrecarga de multitomas en racks de servidores. Prevención: Instalaciones certificadas RETIE." },
+                { risk: "Riesgos Locativos", prevent: "Caídas por cables mal canalizados en áreas de trabajo. Prevención: Canaletas y organización." }
+            ],
+            diseases: [
+                { issue: "Túnel Carpiano", prevent: "Lesión por movimientos repetitivos en digitación. Prevención: Periféricos ergonómicos." },
+                { issue: "Síndrome Visual", prevent: "Fatiga por exposición prolongada a luz azul de monitores. Prevención: Filtros y pausas." }
+            ],
+            mgmt: [
+                { title: "Investigación", text: "Aplicación de metodología árbol de causas para prevenir la repetición de accidentes." },
+                { title: "Auditoría", text: "Verificación del cumplimiento de los estándares mínimos del Decreto 1072." }
+            ],
+            conclusions: [
+                "La sostenibilidad operativa mejora la eficiencia de los procesos de desarrollo.",
+                "El cumplimiento legal mitiga riesgos de sanciones administrativas y ausentismo.",
+                "El fomento del autocuidado genera una cultura laboral de alto desempeño.",
+                "La gestión ambiental fortalece el valor de la marca ante clientes y la sociedad."
+            ]
+        };
+
+        // --- MOTOR DE PRESENTACIÓN ---
+        let currentStep = -1;
+        const steps = [
+            { 
+                tab: 'inicio', 
+                target: 'welcome-card', 
+                text: "Bienvenidos a esta presentación técnica. Hoy analizaremos cómo Rayo Palatianos integra la seguridad y salud en el trabajo con la gestión ambiental en el área de desarrollo de software. Este sistema no es solo una obligación legal, sino también un pilar estratégico para la productividad." 
+            },
+            { 
+                tab: 'ambiente', 
+                target: 'header-ambiente', 
+                text: "Comenzamos con la gestión ambiental. En el desarrollo de software, nuestro principal impacto no es el humo, sino los residuos electrónicos y el consumo de energía. El Decreto 1072 nos insta a actuar con responsabilidad frente al entorno, para garantizar una operación sostenible a largo plazo." 
+            },
+            { 
+                tab: 'ambiente', 
+                target: 'env-list-focus', 
+                text: "Observe las acciones estratégicas. La gestión de los llamados RAEE, o residuos de aparatos eléctricos y electrónicos, es crucial. No podemos desechar computadores como basura común; requieren una disposición especial. Además, optimizar el consumo de los servidores reduce significativamente nuestra huella ecológica." 
+            },
+            { 
+                tab: 'atel', 
+                target: 'acc-focus', 
+                text: "Hablemos de riesgos laborales. Los accidentes de trabajo en tecnología suelen ser subestimados. Sin embargo, un cableado mal canalizado o una sobrecarga en un centro de datos pueden causar incendios o lesiones graves por caídas. La prevención, en este caso, se enfoca en el orden, el aseo y la infraestructura eléctrica certificada." 
+            },
+            { 
+                tab: 'atel', 
+                target: 'dis-focus', 
+                text: "Las enfermedades laborales representan uno de los mayores desafíos en el sector del software. El síndrome del túnel carpiano no aparece de la noche a la mañana; es el resultado de años de mala postura y movimientos repetitivos. Por eso, la prevención se centra en la ergonomía y en la salud visual, ajustando el brillo y regulando los tiempos de exposición frente a las pantallas." 
+            },
+            { 
+                tab: 'gestion', 
+                target: 'pyramid-focus', 
+                text: "Para mitigar estos riesgos, el Decreto 1072 establece una jerarquía de control que debemos seguir estrictamente. A continuación, veremos cómo aplicamos cada nivel, desde el más efectivo hasta el último recurso." 
+            },
+            { 
+                tab: 'gestion', 
+                target: 'lev-1', 
+                text: "El primer nivel es la eliminación. Es la medida más potente. Si detectamos un monitor que emite calor excesivo o un cable con la fase expuesta, la acción inmediata no es repararlo, sino eliminar el peligro, retirando el equipo del área de trabajo para evitar accidentes eléctricos.",
+                action: () => showControlDetail('Eliminación', 'Retirar físicamente el peligro. Es la medida más efectiva.') 
+            },
+            { 
+                tab: 'gestion', 
+                target: 'lev-2', 
+                text: "El segundo nivel es la sustitución. Aquí reemplazamos lo peligroso por una alternativa más segura. Por ejemplo, en el mantenimiento de servidores, sustituimos limpiadores químicos inflamables por solventes de base acuosa o espumas biodegradables, que reducen el riesgo para la salud respiratoria de los técnicos.",
+                action: () => showControlDetail('Sustitución', 'Cambiar el peligro por algo menos riesgoso.') 
+            },
+            { 
+                tab: 'gestion', 
+                target: 'lev-3', 
+                text: "El tercer nivel corresponde a los controles de ingeniería. Se trata de aislar el riesgo mediante el diseño. Para ello, instalamos mobiliario ergonómico ajustable y sistemas de climatización automatizados en los centros de datos, con el fin de evitar que el trabajador se exponga a temperaturas extremas o a ruidos constantes de los ventiladores.",
+                action: () => showControlDetail('Controles de Ingeniería', 'Modificar el ambiente de trabajo para proteger al usuario.') 
+            },
+            { 
+                tab: 'gestion', 
+                target: 'lev-4', 
+                text: "El cuarto nivel son los controles administrativos. Aquí gestionamos el comportamiento y la organización del trabajo. Implementamos señalización preventiva y, especialmente en el área de software, programas de pausas activas. Estas interrupciones programadas permiten que el sistema musculoesquelético se recupere del sedentarismo prolongado.",
+                action: () => showControlDetail('Controles Administrativos', 'Procedimientos, señalización y capacitación obligatoria.') 
+            },
+            { 
+                tab: 'gestion', 
+                target: 'lev-5', 
+                text: "El quinto y último nivel corresponde a los equipos de protección personal. Estos constituyen la última línea de defensa. Suministramos mouses verticales, teclados ergonómicos y, en labores de mantenimiento físico, gafas de seguridad y pulseras antiestáticas para evitar descargas accidentales.",
+                action: () => showControlDetail('EPP', 'Elementos de protección para el trabajador. El último recurso.') 
+            },
+            { 
+                tab: 'gestion', 
+                target: 'dashboard-focus', 
+                text: "Todo este sistema se monitorea a través de un tablero de gestión. Cada incidente se investiga para identificar la causa raíz, y además se realizan auditorías anuales. De esta manera, aseguramos el cumplimiento de la norma y la protección efectiva del talento humano." 
+            },
+            { 
+                tab: 'conclusiones', 
+                target: 'header-conclusiones', 
+                text: "Integrar la seguridad y salud en el trabajo con la gestión ambiental no significa solo cumplir la norma. Una empresa con trabajadores sanos y procesos ecológicos es más competitiva, reduce costos por ausentismo y proyecta una imagen de responsabilidad corporativa ante el mercado global. Gracias por su atención." 
+            }
+        ];
+
+        function startTour() {
+            // Activar Modo Pantalla Completa
+            const docElm = document.documentElement;
+            if (docElm.requestFullscreen) {
+                docElm.requestFullscreen();
+            } else if (docElm.mozRequestFullScreen) {
+                docElm.mozRequestFullScreen();
+            } else if (docElm.webkitRequestFullScreen) {
+                docElm.webkitRequestFullScreen();
+            } else if (docElm.msRequestFullscreen) {
+                docElm.msRequestFullscreen();
+            }
+
+            document.body.classList.add('presentation-active');
+            currentStep = 0;
+            document.getElementById('tour-controls').classList.remove('hidden');
+            applyStep();
+        }
+
+        function stopTour() {
+            // Salir de Pantalla Completa
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+
+            document.body.classList.remove('presentation-active');
+            currentStep = -1;
+            document.getElementById('tour-controls').classList.add('hidden');
+            document.getElementById('narration-indicator').style.display = 'none';
+            document.getElementById('btn-next').classList.remove('btn-latido');
+            clearHighlights();
+            speechSynthesis.cancel();
+            document.getElementById('progress-fill').style.width = '0%';
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                applyStep();
+            } else {
+                stopTour();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                applyStep();
+            }
+        }
+
+        function applyStep() {
+            const step = steps[currentStep];
+            const nextBtn = document.getElementById('btn-next');
+            
+            nextBtn.classList.remove('btn-latido');
+            
+            switchTab(step.tab);
+            clearHighlights();
+            
+            const target = document.getElementById(step.target);
+            if (target) {
+                target.classList.add('focus-highlight');
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            if (step.action) step.action();
+
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(step.text);
+            msg.lang = 'es-ES';
+            msg.rate = 1.05;
+            
+            msg.onstart = () => {
+                document.getElementById('narration-indicator').style.display = 'block';
+            };
+            
+            msg.onend = () => {
+                document.getElementById('narration-indicator').style.display = 'none';
+                if(currentStep !== -1) {
+                    nextBtn.classList.add('btn-latido');
+                }
+            };
+
+            speechSynthesis.speak(msg);
+
+            const progress = ((currentStep + 1) / steps.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.focus-highlight').forEach(el => el.classList.remove('focus-highlight'));
+        }
+
+        // Listener para detectar si el usuario sale de pantalla completa con ESC
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && currentStep !== -1) {
+                stopTour();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (currentStep === -1) return;
+            if (e.key === 'ArrowRight') nextStep();
+            if (e.key === 'ArrowLeft') prevStep();
+            if (e.key === 'Escape') stopTour();
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-[#003366]'));
+            
+            const section = document.getElementById(tabId);
+            if(section) section.classList.remove('hidden');
+            
+            const activeBtn = document.querySelector(`[data-target="${tabId}"]`);
+            if(activeBtn) activeBtn.classList.add('active', 'text-[#003366]');
+
+            if(tabId === 'ambiente' && !window.envChartRendered) {
+                renderEnvChart();
+                window.envChartRendered = true;
+            }
+        }
+
+        function populateUI() {
+            const envList = document.getElementById('env-list');
+            data.environment.forEach(item => {
+                envList.innerHTML += `<li class="flex items-start bg-gray-50 p-4 rounded-xl border border-gray-100 hover:bg-green-50 transition">
+                    <span class="mr-4 text-2xl">${item.icon}</span> 
+                    <span class="text-sm font-medium text-gray-700">${item.text}</span>
+                </li>`;
+            });
+
+            const accCont = document.getElementById('accidents-container');
+            data.accidents.forEach(item => {
+                accCont.innerHTML += `<div class="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+                    <h4 class="font-bold text-[#003366] text-sm">${item.risk}</h4>
+                    <p class="text-xs text-orange-800 mt-1">${item.prevent}</p>
+                </div>`;
+            });
+
+            const disCont = document.getElementById('diseases-container');
+            data.diseases.forEach(item => {
+                disCont.innerHTML += `<div class="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                    <h4 class="font-bold text-[#003366] text-sm">${item.issue}</h4>
+                    <p class="text-xs text-blue-800 mt-1">${item.prevent}</p>
+                </div>`;
+            });
+
+            const mgmtList = document.getElementById('mgmt-items');
+            data.mgmt.forEach(item => {
+                mgmtList.innerHTML += `<li class="bg-white/10 p-5 rounded-xl border border-white/10 hover:bg-white/20 transition">
+                    <strong class="text-green-300 block mb-1">${item.title}</strong> 
+                    <p class="text-sm text-gray-100">${item.text}</p>
+                </li>`;
+            });
+
+            const conclGrid = document.getElementById('concl-grid');
+            data.conclusions.forEach((text, i) => {
+                conclGrid.innerHTML += `<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover-card">
+                    <span class="bg-[#003366] text-white w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-black text-xl">${i+1}</span>
+                    <p class="text-sm text-gray-700 font-bold leading-snug">${text}</p>
+                </div>`;
+            });
+        }
+
+        function showControlDetail(title, text) {
+            const container = document.getElementById('control-detail');
+            container.innerHTML = `<h4 class="font-black text-[#003366] text-xl mb-2">📍 ${title}</h4><p class="text-gray-700 text-sm leading-relaxed">${text}</p>`;
+            container.classList.add('animate-pulse');
+            setTimeout(() => container.classList.remove('animate-pulse'), 500);
+        }
+
+        function renderEnvChart() {
+            const ctx = document.getElementById('envChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['RAEE', 'Energía', 'Residuos', 'Vertimientos'],
+                    datasets: [{
+                        data: [35, 30, 20, 15],
+                        backgroundColor: ['#2E7D32', '#4CAF50', '#FF9800', '#003366'],
+                        hoverOffset: 15
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateUI();
+        });
+    </script>
+</body>
+</html>
